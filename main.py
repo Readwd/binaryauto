@@ -1,7 +1,8 @@
 import os
 import time
+import asyncio
 from getpass import getpass
-from telegram.ext import Updater, MessageHandler, Filters
+from telegram.ext import Application, MessageHandler, filters
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -13,15 +14,26 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Prompt for trade amount and credentials
-username = os.getenv('QX_USERNAME') or input('Enter your qxbroker.com username: ')
-password = os.getenv('QX_PASSWORD') or getpass('Enter your qxbroker.com password: ')
-trade_amount = input('Enter trade amount: ')
-TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN') or input('Enter your Telegram bot token: ')
+# Global variables
+driver = None
+wait = None
+username = None
+password = None
+trade_amount = None
 
-# Set up Selenium (visible browser)
-driver = webdriver.Chrome()
-wait = WebDriverWait(driver, 10)
+def setup_credentials():
+    """Setup credentials and trade amount"""
+    global username, password, trade_amount
+    
+    username = os.getenv('QX_USERNAME') or input('Enter your qxbroker.com username: ')
+    password = os.getenv('QX_PASSWORD') or getpass('Enter your qxbroker.com password: ')
+    trade_amount = input('Enter trade amount: ')
+
+def setup_browser():
+    """Setup Selenium browser"""
+    global driver, wait
+    driver = webdriver.Chrome()
+    wait = WebDriverWait(driver, 10)
 
 def login_to_qxbroker():
     """Login to qxbroker.com"""
@@ -237,17 +249,33 @@ def place_trade(signal):
         print(f"❌ Error placing trade: {e}")
         return False
 
-# Telegram message handler
-def handle_message(update, context):
+async def handle_message(update, context):
+    """Telegram message handler"""
     text = update.message.text
     if 'Active Pair' in text and 'Direction' in text:
         signal = parse_signal(text)
-        place_trade(signal)
+        # Run the trading function in a separate thread to avoid blocking
+        await asyncio.get_event_loop().run_in_executor(None, place_trade, signal)
 
-updater = Updater(TELEGRAM_TOKEN, use_context=True)
-dp = updater.dispatcher
-dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
+async def main():
+    """Main function"""
+    # Setup credentials and browser
+    setup_credentials()
+    setup_browser()
+    
+    # Get Telegram token
+    TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN') or input('Enter your Telegram bot token: ')
+    
+    # Create application
+    application = Application.builder().token(TELEGRAM_TOKEN).build()
+    
+    # Add message handler
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    
+    print('Bot is running. Waiting for signals...')
+    
+    # Start the bot
+    await application.run_polling()
 
-print('Bot is running. Waiting for signals...')
-updater.start_polling()
-updater.idle()
+if __name__ == "__main__":
+    asyncio.run(main())
