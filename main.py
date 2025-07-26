@@ -17,13 +17,19 @@ TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN') or input('Enter your Telegram bot t
 driver = webdriver.Chrome()
 
 def parse_signal(message_text):
-    # Placeholder: implement signal parsing logic
-    return {
-        'pair': 'EURJPY',
-        'direction': 'PUT',
-        'expiration': 'M1',
-        'time': '23:14'
-    }
+    # Extracts trading signal details from the Telegram message
+    lines = message_text.splitlines()
+    signal = {}
+    for line in lines:
+        if 'Active Pair' in line:
+            signal['pair'] = line.split('»')[-1].strip()
+        elif 'Timetable' in line:
+            signal['time'] = line.split('»')[-1].strip()
+        elif 'Expiration' in line:
+            signal['expiration'] = line.split('»')[-1].strip()
+        elif 'Direction' in line:
+            signal['direction'] = line.split('»')[-1].strip()
+    return signal
 
 def place_trade(signal):
     # Placeholder: implement Selenium automation to log in and place trade
