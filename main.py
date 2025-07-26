@@ -26,8 +26,12 @@ def setup_credentials():
     global username, password, trade_amount
     
     username = os.getenv('QX_USERNAME') or input('Enter your qxbroker.com username: ')
-    password = os.getenv('QX_PASSWORD') or getpass('Enter your qxbroker.com password: ')
+    password = os.getenv('QX_PASSWORD') or input('Enter your qxbroker.com password: ')
     trade_amount = input('Enter trade amount: ')
+    
+    print(f"Username: {username}")
+    print(f"Trade amount: {trade_amount}")
+    print("Password: [hidden]")
 
 def setup_browser():
     """Setup Selenium browser"""
