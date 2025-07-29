@@ -1,0 +1,3 @@
+api_id = 23518221
+api_hash = d090a71f0485166198a3e0765ec705e9
+canal = @mysignal72_bot

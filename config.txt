@@ -1,0 +1,22 @@
+[AJUSTES]
+valor_entrada = 1
+usar_porcentaje = S
+porcentaje_entrada = 1
+set_asset = S
+asset = EURUSD
+expiration_time = 60
+use_stop_win = N
+stop_win = 1000
+use_stop_loss = N
+stop_loss = 100
+MaFast_period = 1
+MaSlow_period = 34
+Signal_period = 5
+use_media_movil = N
+periodo_medias = 15
+
+[MARTINGALE]
+usar_martingale = S
+niveles_martingala = 10
+factor_martingale = 2.2
+
